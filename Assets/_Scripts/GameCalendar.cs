@@ -1,54 +1,127 @@
-using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
+using TMPro;
 
 public class GameCalendar : MonoBehaviour
 {
-    public int day = 1;
-    public int month = 1;
-    public int year = 1;
-    public int hour = 6; // starting hour of the day
+    // Public fields to display year, season, week, and day
+    public TextMeshProUGUI yearText;
+    public TextMeshProUGUI seasonText;
+    public TextMeshProUGUI weekText;
+    public TextMeshProUGUI[] dayTexts; // Array for each day's TextMeshPro
 
-    public float secondsPerMinute = 1f; // Adjust for time speed
+    public TextMeshProUGUI eventText; // Displays events happening on the selected day
 
-    public UnityEvent onNewDay;
-    public UnityEvent onNewMonth;
-    public UnityEvent onNewYear;
+    // Calendar Data
+    private int year = 1;
+    private int week = 1;
+    private int currentDay = 1;
+    private string[] seasons = { "Spring", "Summer", "Autumn", "Winter" };
+    private int currentSeasonIndex = 0;
 
-    private float timeAccumulator = 0f;
+    private Dictionary<int, string> events = new Dictionary<int, string>();
 
-    private void Update()
+    private void Start()
     {
-        timeAccumulator += Time.deltaTime;
-        if (timeAccumulator >= secondsPerMinute)
+        InitializeCalendar();
+        DisplayDate();
+    }
+
+    private void InitializeCalendar()
+    {
+        // Add example events for specific days (you can add more or make them dynamic)
+        events[2] = "Rainy Season on Spring 7";
+        events[11] = "Testing Event on Spring 11";
+        events[28] = "Summer Solstice on Spring 28";
+
+        UpdateSeasonText();
+        UpdateWeekText();
+        UpdateDayNumbers();
+    }
+
+    public void NextSeason()
+    {
+        currentSeasonIndex = (currentSeasonIndex + 1) % seasons.Length;
+        week = 1; // Reset the week for the new season
+        UpdateSeasonText();
+        UpdateWeekText();
+    }
+
+    public void PreviousSeason()
+    {
+        currentSeasonIndex = (currentSeasonIndex - 1 + seasons.Length) % seasons.Length;
+        week = 1; // Reset the week for the new season
+        UpdateSeasonText();
+        UpdateWeekText();
+    }
+
+    private void DisplayDate()
+    {
+        yearText.text = $"Year: {year}";
+        seasonText.text = seasons[currentSeasonIndex];
+        weekText.text = $"Week: {week}";
+    }
+
+    private void UpdateSeasonText()
+    {
+        seasonText.text = seasons[currentSeasonIndex];
+    }
+
+    private void UpdateWeekText()
+    {
+        weekText.text = $"Week: {week}";
+    }
+
+    private void UpdateDayNumbers()
+    {
+        for (int i = 0; i < dayTexts.Length; i++)
         {
-            timeAccumulator = 0f;
-            AdvanceTime();
+            dayTexts[i].text = (i + 1).ToString("D2");
+
+            // Highlight the current day
+            if (i + 1 == currentDay)
+            {
+                dayTexts[i].color = Color.green; // Change this color as desired
+            }
+            else
+            {
+                dayTexts[i].color = Color.white;
+            }
+        }
+
+        UpdateEventText();
+    }
+
+    private void UpdateEventText()
+    {
+        // Check if there's an event for the current day
+        if (events.ContainsKey(currentDay))
+        {
+            eventText.text = events[currentDay];
+        }
+        else
+        {
+            eventText.text = "No events today";
         }
     }
 
-    private void AdvanceTime()
+    public void NextDay()
     {
-        hour++;
-        if (hour >= 24) // Adjust for hours in a day
+        currentDay++;
+
+        // Reset to the beginning of the month if we've reached the end
+        if (currentDay > dayTexts.Length)
         {
-            hour = 0;
-            day++;
-            onNewDay.Invoke();
-
-            if (day > 30) // Adjust for days in a month
+            currentDay = 1;
+            week++;
+            if (week > 4)
             {
-                day = 1;
-                month++;
-                onNewMonth.Invoke();
-
-                if (month > 4) // Adjust for months in a year
-                {
-                    month = 1;
-                    year++;
-                    onNewYear.Invoke();
-                }
+                week = 1;
+                NextSeason();
             }
         }
+
+        UpdateDayNumbers();
     }
 }
