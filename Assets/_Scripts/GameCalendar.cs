@@ -34,6 +34,8 @@ public class GameCalendar : MonoBehaviour
         events[2] = "Rainy Season on Spring 7";
         events[11] = "Testing Event on Spring 11";
         events[28] = "Summer Solstice on Spring 28";
+        events[5] = "Festival on Spring 5";
+        events[15] = "Market Day on Spring 15";
 
         UpdateSeasonText();
         UpdateWeekText();
